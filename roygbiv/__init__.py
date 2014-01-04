@@ -1,3 +1,4 @@
+import math
 import PIL
 import PIL.JpegImagePlugin
 from PIL import Image
@@ -15,8 +16,8 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
 # algorithm tuning
-N_QUANTIZED = 110       # start with an adaptive palette of this size
-MIN_DISTANCE = 7    # min distance to consider two colors different
+N_QUANTIZED = 100       # start with an adaptive palette of this size
+MIN_DISTANCE = 10    # min distance to consider two colors different
 MIN_PROMINENCE = 0.025   # ignore if less than this proportion of image
 MIN_SATURATION = 0.00  # ignore if not saturated enough
 MAX_COLORS = 7          # keep only this many colors
@@ -30,6 +31,9 @@ SENTINEL = 'no more to process'
 class Roygbiv(object):
 
     __img = None
+    colors = None
+    BLACK = None
+    WHITE = None
 
     def __init__(self, img_or_filename):
         if not img_or_filename:
@@ -60,29 +64,16 @@ class Roygbiv(object):
         data = im.getdata()
         dist = Counter(data)
         n_pixels = mul(*im.size)
-        sorted_cols = sorted(dist.iteritems(), key=itemgetter(1), reverse=True)
-        print len(sorted_cols)
-        ave, WHITE = max((sum(c)/3.0, c) for c, n in sorted_cols)
-        ave, BLACK = min((sum(c)/3.0, c) for c, n in sorted_cols)
+        self.colors = sorted(dist.iteritems(), key=itemgetter(1), reverse=True)
+        ave, self.WHITE = max((sum(c)/3.0, c) for c, n in self.colors)
+        ave, self.BLACK = min((sum(c)/3.0, c) for c, n in self.colors)
+        (to_canonical, aggregated) = self.__compare_colors(min_distance)
+        first_pass_colors = len(aggregated.keys())
 
-        # aggregate colors
-        to_canonical = {WHITE: WHITE, BLACK: BLACK}
-        aggregated = Counter({WHITE: 0, BLACK: 0})
-        for c, n in sorted_cols:
-            if c in aggregated:
-                # exact match!
-                aggregated[c] += n
-            else:
-                d, nearest = min((self.__distance(c, alt), alt) for alt in aggregated)
-                if d < min_distance:
-                    # nearby match
-                    aggregated[nearest] += n
-                    to_canonical[c] = nearest
-                else:
-                    # no nearby match
-                    aggregated[c] = n
-                    to_canonical[c] = c
-
+        if first_pass_colors < (min_distance):
+            min_distance = first_pass_colors
+        #min_distance += math.floor(math.sqrt(len(aggregated.keys())))
+        (to_canonical, aggregated) = self.__compare_colors(min_distance)
         # order by prominence
         colors = sorted((Color(c, n / float(n_pixels)) \
                     for (c, n) in aggregated.iteritems()),
@@ -106,6 +97,27 @@ class Roygbiv(object):
                 * min_prominence][:max_colors]
 
         return Palette(colors, bg_color)
+
+    def __compare_colors(self, min_distance):
+        # aggregate colors
+        to_canonical = {WHITE: WHITE, BLACK: BLACK}
+        aggregated = Counter({WHITE: 0, BLACK: 0})
+        for c, n in self.colors:
+            if c in aggregated:
+                # exact match!
+                aggregated[c] += n
+            else:
+                d, nearest = min((self.__distance(c, alt), alt) for alt in aggregated)
+                if d < min_distance:
+                    # nearby match
+                    aggregated[nearest] += n
+                    to_canonical[c] = nearest
+                else:
+                    # no nearby match
+                    aggregated[c] = n
+                    to_canonical[c] = c
+
+        return (to_canonical, aggregated)
 
     def __autocrop(self):
         "Crop away a border of the given background color."
