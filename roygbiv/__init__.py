@@ -15,12 +15,12 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
 # algorithm tuning
-N_QUANTIZED = 100       # start with an adaptive palette of this size
-MIN_DISTANCE = 10.0     # min distance to consider two colors different
-MIN_PROMINENCE = 0.01   # ignore if less than this proportion of image
-MIN_SATURATION = 0.05   # ignore if not saturated enough
-MAX_COLORS = 5          # keep only this many colors
-BACKGROUND_PROMINENCE = 0.5     # level of prominence indicating a bg color
+N_QUANTIZED = 110       # start with an adaptive palette of this size
+MIN_DISTANCE = 7    # min distance to consider two colors different
+MIN_PROMINENCE = 0.025   # ignore if less than this proportion of image
+MIN_SATURATION = 0.00  # ignore if not saturated enough
+MAX_COLORS = 7          # keep only this many colors
+BACKGROUND_PROMINENCE = 0.7     # level of prominence indicating a bg color
 
 # multiprocessing parameters
 BLOCK_SIZE = 10
@@ -60,11 +60,14 @@ class Roygbiv(object):
         data = im.getdata()
         dist = Counter(data)
         n_pixels = mul(*im.size)
+        sorted_cols = sorted(dist.iteritems(), key=itemgetter(1), reverse=True)
+        print len(sorted_cols)
+        ave, WHITE = max((sum(c)/3.0, c) for c, n in sorted_cols)
+        ave, BLACK = min((sum(c)/3.0, c) for c, n in sorted_cols)
 
         # aggregate colors
         to_canonical = {WHITE: WHITE, BLACK: BLACK}
         aggregated = Counter({WHITE: 0, BLACK: 0})
-        sorted_cols = sorted(dist.iteritems(), key=itemgetter(1), reverse=True)
         for c, n in sorted_cols:
             if c in aggregated:
                 # exact match!
@@ -140,8 +143,8 @@ class Roygbiv(object):
         if majority_count >= 3:
             # we have a background color
             canonical_bg = to_canonical[majority_col]
-            bg_color, = [c for c in colors if c.value == canonical_bg]
-            colors = [c for c in colors if c.value != canonical_bg]
+            bg_color, = [c for c in colors if c.value == canonical_bg] # and c.prominence > BACKGROUND_PROMINENCE]
+            colors = [c for c in colors if c.value != canonical_bg] # or c.prominence <= BACKGROUND_PROMINENCE]
         else:
             # no background color
             bg_color = None
@@ -209,4 +212,3 @@ class Roygbiv(object):
     def get_average_rgb(self):
         """ return average RGB color in image """
         return self.__average_color()
-
