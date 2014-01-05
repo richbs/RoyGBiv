@@ -16,9 +16,9 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
 # algorithm tuning
-N_QUANTIZED = 100       # start with an adaptive palette of this size
-MIN_DISTANCE = 10    # min distance to consider two colors different
-MIN_PROMINENCE = 0.025   # ignore if less than this proportion of image
+N_QUANTIZED = 96     # start with an adaptive palette of this size
+MIN_DISTANCE = 5    # min distance to consider two colors different
+MIN_PROMINENCE = 0.015     # ignore if less than this proportion of image
 MIN_SATURATION = 0.00  # ignore if not saturated enough
 MAX_COLORS = 7          # keep only this many colors
 BACKGROUND_PROMINENCE = 0.7     # level of prominence indicating a bg color
@@ -65,15 +65,22 @@ class Roygbiv(object):
         dist = Counter(data)
         n_pixels = mul(*im.size)
         self.colors = sorted(dist.iteritems(), key=itemgetter(1), reverse=True)
-        ave, self.WHITE = max((sum(c)/3.0, c) for c, n in self.colors)
-        ave, self.BLACK = min((sum(c)/3.0, c) for c, n in self.colors)
+        prominent_colors = [(c,n) for c, n in self.colors
+                            if n/float(n_pixels) > min_prominence]
+
+        if prominent_colors:
+            ave, self.WHITE = max((sum(c)/3.0, c) for c, n in prominent_colors)
+            ave, self.BLACK = min((sum(c)/3.0, c) for c, n in prominent_colors)
+        else:
+            self.WHITE = WHITE
+            self.BLACK = BLACK
+
         (to_canonical, aggregated) = self.__compare_colors(min_distance)
         first_pass_colors = len(aggregated.keys())
+        if first_pass_colors > (max_colors * 1.5):
+            min_distance += (math.floor(math.sqrt(first_pass_colors)) * 2)
+            (to_canonical, aggregated) = self.__compare_colors(min_distance)
 
-        if first_pass_colors < (min_distance):
-            min_distance = first_pass_colors
-        #min_distance += math.floor(math.sqrt(len(aggregated.keys())))
-        (to_canonical, aggregated) = self.__compare_colors(min_distance)
         # order by prominence
         colors = sorted((Color(c, n / float(n_pixels)) \
                     for (c, n) in aggregated.iteritems()),
@@ -100,8 +107,8 @@ class Roygbiv(object):
 
     def __compare_colors(self, min_distance):
         # aggregate colors
-        to_canonical = {WHITE: WHITE, BLACK: BLACK}
-        aggregated = Counter({WHITE: 0, BLACK: 0})
+        to_canonical = {self.WHITE: self.WHITE, self.BLACK: self.BLACK}
+        aggregated = Counter({self.WHITE: 0, self.BLACK: 0})
         for c, n in self.colors:
             if c in aggregated:
                 # exact match!
