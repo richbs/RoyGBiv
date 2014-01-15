@@ -16,7 +16,7 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
 # algorithm tuning
-N_QUANTIZED = 96     # start with an adaptive palette of this size
+N_QUANTIZED = 100     # start with an adaptive palette of this size
 MIN_DISTANCE = 5    # min distance to consider two colors different
 MIN_PROMINENCE = 0.015     # ignore if less than this proportion of image
 MIN_SATURATION = 0.00  # ignore if not saturated enough
@@ -28,12 +28,13 @@ BLOCK_SIZE = 10
 N_PROCESSES = 1
 SENTINEL = 'no more to process'
 
+
 class Roygbiv(object):
 
     __img = None
     colors = None
-    BLACK = None
-    WHITE = None
+    DARKEST = None
+    LIGHTEST = None
 
     def __init__(self, img_or_filename):
         if not img_or_filename:
@@ -69,15 +70,15 @@ class Roygbiv(object):
                             if n/float(n_pixels) > min_prominence]
 
         if prominent_colors:
-            ave, self.WHITE = max((sum(c)/3.0, c) for c, n in prominent_colors)
-            ave, self.BLACK = min((sum(c)/3.0, c) for c, n in prominent_colors)
+            ave, self.LIGHTEST = max((sum(c)/3.0, c) for c, n in prominent_colors)
+            ave, self.DARKEST = min((sum(c)/3.0, c) for c, n in prominent_colors)
         else:
-            self.WHITE = WHITE
-            self.BLACK = BLACK
+            self.LIGHTEST = WHITE
+            self.DARKEST = BLACK
 
         (to_canonical, aggregated) = self.__compare_colors(min_distance)
         first_pass_colors = len(aggregated.keys())
-        if first_pass_colors > (max_colors * 1.5):
+        if first_pass_colors > (max_colors * 2):
             min_distance += (math.floor(math.sqrt(first_pass_colors)) * 2)
             (to_canonical, aggregated) = self.__compare_colors(min_distance)
 
@@ -107,8 +108,8 @@ class Roygbiv(object):
 
     def __compare_colors(self, min_distance):
         # aggregate colors
-        to_canonical = {self.WHITE: self.WHITE, self.BLACK: self.BLACK}
-        aggregated = Counter({self.WHITE: 0, self.BLACK: 0})
+        to_canonical = {self.LIGHTEST: self.LIGHTEST, self.DARKEST: self.DARKEST}
+        aggregated = Counter({self.LIGHTEST: 0, self.DARKEST: 0})
         for c, n in self.colors:
             if c in aggregated:
                 # exact match!
@@ -169,7 +170,6 @@ class Roygbiv(object):
             bg_color = None
 
         return colors, bg_color
-
 
     def __average_color(self):
         """ determine the average RGB color in image """
