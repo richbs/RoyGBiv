@@ -12,7 +12,7 @@ setup(
     long_description=open("README.md").read(),
     packages=find_packages(),
     author='Giv Parvaneh',
-    install_requires=['Pillow', 'colormath', 'numpy'],
+    install_requires=['Pillow', 'colormath<2', 'numpy'],
     license="http://www.opensource.org/licenses/mit-license.php",
     )
 
