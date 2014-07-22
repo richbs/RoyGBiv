@@ -21,7 +21,7 @@ MIN_DISTANCE = 5    # min distance to consider two colors different
 MIN_PROMINENCE = 0.015     # ignore if less than this proportion of image
 MIN_SATURATION = 0.00  # ignore if not saturated enough
 MAX_COLORS = 7          # keep only this many colors
-BACKGROUND_PROMINENCE = 0.9     # level of prominence indicating a bg color
+BACKGROUND_PROMINENCE = False     # level of prominence indicating a bg color
 
 # multiprocessing parameters
 BLOCK_SIZE = 10
@@ -101,7 +101,10 @@ class Roygbiv(object):
                 key=lambda c: c.prominence*(1+c.saturation),
                 reverse=True)
 
-        colors, bg_color = self.__detect_background(im, colors, to_canonical)
+        if BACKGROUND_PROMINENCE == False:
+            bg_color = None
+        else:
+            colors, bg_color = self.__detect_background(im, colors, to_canonical)
 
         # keep any color which meets the minimum saturation
         sat_colors = [c for c in colors if self.__meets_min_saturation(c, min_saturation)]
@@ -161,7 +164,7 @@ class Roygbiv(object):
         return colorsys.rgb_to_hsv(*self.__norm_color(c))[1]
 
     def __meets_min_saturation(self, c, threshold):
-        return c.saturation > threshold
+        return c.saturation >= threshold
 
 
     def __norm_color(self, c):
