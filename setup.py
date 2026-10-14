@@ -6,7 +6,10 @@ setup(
     url='https://github.com/givp/RoyGBiv',
     classifiers=[
         'Programming Language :: Python',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3 :: Only',
         ],
+    python_requires='>=3.6',
     include_package_data=True,
     description='A set of image color analysis tools',
     long_description=open("README.md").read(),
@@ -15,4 +18,3 @@ setup(
     install_requires=['Pillow', 'colormath<2', 'numpy'],
     license="http://www.opensource.org/licenses/mit-license.php",
     )
-

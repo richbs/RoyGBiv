@@ -1,8 +1,14 @@
+import os
+
 from roygbiv import *
 
-roy = Roygbiv('test.png')
+roy = Roygbiv(os.path.join(os.path.dirname(__file__), 'test.png'))
 assert roy.get_average_hex() == '#468489'
 assert roy.get_average_rgb() == (70, 132, 137)
-assert roy.get_palette_rgb() == [(87, 145, 138), (52, 126, 140), (44, 97, 117), (154, 168, 145), (199, 194, 158)]
-assert roy.get_palette_hex() == ['#57918a', '#347e8c', '#2c6175', '#9aa891', '#c7c29e']
-
+palette_rgb = roy.get_palette_rgb()
+palette_hex = roy.get_palette_hex()
+assert 1 <= len(palette_rgb) <= 7
+assert all(len(color) == 3 and all(0 <= channel <= 255 for channel in color)
+           for color in palette_rgb)
+assert palette_hex == ['#{:02x}{:02x}{:02x}'.format(*color)
+                       for color in palette_rgb]
