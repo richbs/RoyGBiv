@@ -18,3 +18,4 @@ setup(
     install_requires=['Pillow', 'colormath<2', 'numpy'],
     license="http://www.opensource.org/licenses/mit-license.php",
     )
+

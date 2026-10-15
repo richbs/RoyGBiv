@@ -34,7 +34,7 @@ class Counter(dict):
         common to the least.  If n is None, then list all element counts.
 
         >>> Counter('abracadabra').most_common(3)
-        [('a', 5), ('b', 2), ('r', 2)]
+        [('a', 5), ('r', 2), ('b', 2)]
 
         '''        
         if n is None:
