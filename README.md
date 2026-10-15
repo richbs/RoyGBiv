@@ -6,8 +6,8 @@ _by Giv Parvaneh_
 
 ## Requirements
 
-- Python 2.6+
-- Python Imaging Library (PIL)
+- Python 3.6+
+- Pillow
 - NumPy
 - ColorMath
 
@@ -38,4 +38,4 @@ Then ```pip install RoyGBiv```
 
 ## Credits
 
-A lot of this code is borrowed from the most excellent [Colorific](https://github.com/99designs/colorific/ "Colorific") project but modified to work with Python 2.6 + other tweaks
+A lot of this code is borrowed from the most excellent [Colorific](https://github.com/99designs/colorific/ "Colorific") project, with other tweaks.

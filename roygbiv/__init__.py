@@ -4,10 +4,9 @@ import PIL.JpegImagePlugin
 from PIL import Image
 from PIL import ImageChops
 from collections import namedtuple
-from Counter import Counter
-from operator import itemgetter, mul, attrgetter
-from colormath.color_objects import BaseRGBColor, LabColor
-from colormath.color_conversions import convert_color
+from .Counter import Counter
+from operator import itemgetter, mul
+from colormath.color_objects import LabColor
 import colormath.color_diff
 import colorsys
 
@@ -67,7 +66,7 @@ class Roygbiv(object):
         data = im.getdata()
         dist = Counter(data)
         n_pixels = mul(*im.size)
-        self.colors = sorted(dist.iteritems(), key=itemgetter(1), reverse=True)
+        self.colors = sorted(dist.items(), key=itemgetter(1), reverse=True)
         prominent_colors = [(c,n) for c, n in self.colors
                             if n/float(n_pixels) > min_prominence]
 
@@ -86,7 +85,7 @@ class Roygbiv(object):
 
         # the colors
         colors = [Color(c, n / float(n_pixels), self.__get_saturation(c)) \
-                    for (c, n) in aggregated.iteritems()]
+                    for (c, n) in aggregated.items()]
         # avg saturation:
         total_saturation = 0
         for c in colors:
@@ -180,8 +179,8 @@ class Roygbiv(object):
 
         # work out the background color
         w, h = im.size
-        points = [(0, 0), (0, h/2), (0, h-1), (w/2, h-1), (w-1, h-1),
-                (w-1, h/2), (w-1, 0), (w/2, 0)]
+        points = [(0, 0), (0, h//2), (0, h-1), (w//2, h-1), (w-1, h-1),
+                (w-1, h//2), (w-1, 0), (w//2, 0)]
         edge_dist = Counter(im.getpixel(p) for p in points)
 
         (majority_col, majority_count), = edge_dist.most_common(1)
@@ -208,9 +207,9 @@ class Roygbiv(object):
         # perform the weighted average of each channel:
         # the *index* is the channel value, and the *value* is its weight
         return (
-            sum( i*w for i, w in enumerate(r) ) / sum(r),
-            sum( i*w for i, w in enumerate(g) ) / sum(g),
-            sum( i*w for i, w in enumerate(b) ) / sum(b)
+            sum( i*w for i, w in enumerate(r) ) // sum(r),
+            sum( i*w for i, w in enumerate(g) ) // sum(g),
+            sum( i*w for i, w in enumerate(b) ) // sum(b)
         )
 
     def __rgb_to_hex(self, rgb):
@@ -224,10 +223,10 @@ class Roygbiv(object):
         return palette
 
         '''
-        print '%s\t%s\t%s' % (
-            ','.join(rgb_to_hex(c.value) for c in palette.colors),
-            palette.bgcolor and rgb_to_hex(palette.bgcolor.value) or '',
-        )
+        print('%s\t%s\t%s' % (
+            ','.join(self.__rgb_to_hex(c.value) for c in palette.colors),
+            self.__rgb_to_hex(palette.bgcolor.value) if palette.bgcolor else '',
+        ))
         '''
 
     def get_palette_rgb(self):
