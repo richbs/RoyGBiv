@@ -207,9 +207,9 @@ class Roygbiv(object):
         # perform the weighted average of each channel:
         # the *index* is the channel value, and the *value* is its weight
         return (
-            sum( i * w for i, w in enumerate(r) ) // sum(r),
-            sum( i * w for i, w in enumerate(g) ) // sum(g),
-            sum( i * w for i, w in enumerate(b) ) // sum(b)
+            sum( i*w for i, w in enumerate(r) ) // sum(r),
+            sum( i*w for i, w in enumerate(g) ) // sum(g),
+            sum( i*w for i, w in enumerate(b) ) // sum(b)
         )
 
     def __rgb_to_hex(self, rgb):
